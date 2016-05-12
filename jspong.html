@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <canvas id="display" style="border:2px solid #464646;">
+        Ta przegladarka nie obsługuje elementu canvas zawartego w HTML5. Pobierz najnowszą wersje Chrome lub innej przeglądarki.
+        </canvas>
+        
+        <script language="JavaScript">
+            
+            /*
+            Author: Tomasz Staroń
+            This game works only in html5 by using its canvas object to render graphics. You can redistribute and modify this code as you want, but you must include me as original author. License - CC BY-NC (https://creativecommons.org/licenses/by-nc/2.0/)
+            */
+            
+            var platf = new Image(),
+                pong = new Image();
+            platf.src = "platform.jpg";
+            pong.src = "pong.jpg";
+            var canv = document.getElementById("display");
+            var gengine = canv.getContext("2d");
+            var gamemode = 0;
+            canv.height = 720;
+            canv.width = 1280;
+            var x = 0,
+                y = 275,
+                pv = 10,
+                ey,
+                x0 = 1248,
+                y0 = 275,
+                ey0,
+                cdl,
+                cdr,
+                scorel = 0,
+                scorer = 0;
+            function pchoose()
+            {
+                gengineclear();
+                gengine.font= "90px Calibri";
+                gengine.fillText("JSPong", 490, 100);
+                gengine.font = "64px Calibri";
+                gengine.fillText("W - Singleplayer", 410, 300);
+                gengine.fillText("S - Multiplayer", 420, 500);
+                gengine.font = "40px Calibri";
+                gengine.fillText("Steering:", 25, 600);
+                gengine.font = "32px Calibri";
+                gengine.fillText("Left: W, S", 25, 650);
+                gengine.fillText("Right: Arrows - up, down", 25, 700);
+                gengine.font = "32px Calibri";
+                gengine.fillText("Author: Tomasz Staroń", 980, 700);
+                
+                if(p1up==true)
+                    {
+                        gamemode = 1;
+                    }
+                if(p1down==true)
+                    {
+                        gamemode = 2;
+                    }
+            }
+            function score()
+            {
+                gengine.font = "72px Calibri";
+                gengine.fillText(scorel, 300, 600);
+                gengine.fillText(scorer, 980, 600);
+            }
+            var mv = 
+            {
+                p1up: function()
+                {
+                    y = y-pv;
+                        if(y<0)
+                        {
+                            y = y + pv;
+                        }
+                },
+                p1down: function()
+                {
+                    y = y+pv;
+                        if(ey>canv.height)
+                        {
+                            y = y - pv;
+                        }
+                },
+                p2up: function()
+                {
+                    y0 = y0-pv;
+                        if(y0<0)
+                        {
+                            y0 = y0 + pv;
+                        }
+                },
+                p2down: function()
+                {
+                    y0 = y0+pv;
+                        if(ey0>canv.height)
+                        {
+                            y0 = y0 - pv;
+                        }
+                },
+            }
+            //pseudo ai
+            var ai = 
+            {
+                rand1: 1,
+                rand2: 1,
+                randomn: function()
+                {
+                    this.rand1 = Math.random() * ((20 - -20) + -20) * ball.vpx * -ball.vpy;
+                    this.rand2 = Math.random() * (10 - -10) + -10;
+                },
+                move: function()
+                {
+                    this.randomn();
+                    if(this.rand2>-8)
+                        {
+                            if(this.rand1 > 0)
+                                {
+                                    mv.p2up();
+                                }
+                            if(this.rand1 < 0)
+                                {
+                                    mv.p2down();
+                                }
+                        }
+                },
+            }
+
+            function cdetect()
+            {
+                ey = y+128;
+                ey0 = y0+128;
+                if(ball.px<=24&&ball.py>=(y-16)&&ball.pyd<=(ey+16))
+                   {
+                    cdl = true;
+                   }
+                else
+                   {
+                   cdl = false;
+                   }
+                if(ball.px>=(canv.width-24)&&ball.py>=(y0-16)&&ball.pyd<=(ey0+16))
+                    {
+                    cdr = true;
+                   }
+                else
+                   {
+                   cdr = false;
+                   }
+            }
+
+            var ball =
+                {
+                    bability: 1,
+                    px: 500,
+                    py: 360,
+                    pyd: 392,
+                    vpx: 11,
+                    vpy: 11,
+                    draw: function()
+                    {
+                        this.pyd = this.py + 32;
+                        this.py = this.py + this.vpy;
+                        this.px = this.px + this.vpx;
+                        cdetect();
+                        if(this.py > canv.height)
+                            {
+                                this.py = canv.height - 32;
+                                this.vpy = this.vpy * -this.bability;
+                            }
+                        if(this.py < 0)
+                            {
+                                this.py += 32;
+                                this.vpy = this.vpy * -this.bability;
+                            }
+                        if(this.px > canv.width || cdr == true)
+                            {
+                                this.px = canv.width - 32;
+                                this.vpx = this.vpx * -this.bability;
+                                if(cdr!=true)
+                                {
+                                scorel++;
+                                }
+                            }
+                        if(this.px < 0 || cdl == true)
+                            {
+                                this.px += 32;
+                                this.vpx = this.vpx * -this.bability;
+                                if(cdl!=true)
+                                {
+                                scorer++;
+                                }
+                            }
+                        gengine.drawImage(pong, this.px, this.py);
+                    },
+                }
+
+            var p1up,
+                p1down,
+                p2up,
+                p2down;
+            document.addEventListener("keydown", OnKeyD);
+            document.addEventListener("keyup", OnKeyU);
+            
+            function OnKeyD(event)
+            {
+                var keyCode = event.keyCode;
+                
+                
+                switch(keyCode)
+                    {
+                            case 87:
+                            p1up = true;
+                            break;
+                            case 83:
+                            p1down = true;
+                            break;
+                            case 38:
+                            p2up = true;
+                            break;
+                            case 40:
+                            p2down = true;
+                            break;
+                    }
+            }
+            function OnKeyU(event)
+            {
+                var keyCode = event.keyCode;
+                switch(keyCode)
+                    {
+                            case 87:
+                            p1up = false;
+                            break;
+                            case 83:
+                            p1down = false;
+                            break;
+                            case 38:
+                            p2up = false;
+                            break;
+                            case 40:
+                            p2down = false;
+                            break;
+                    }
+            }
+            
+            function gengineclear()
+            {
+                gengine.setTransform(1, 0, 0, 1, 0, 0);
+                gengine.clearRect(0, 0, canv.width, canv.height);
+            }
+            
+            function render()
+            {
+                
+                if(gamemode == 1)
+                {
+                 if(p1up==true)
+                    {
+                        mv.p1up();
+                    }
+                if(p1down==true)
+                    {
+                        mv.p1down();
+                    }
+                console.log("left: "+cdl+"   right: "+cdr);
+                gengineclear();
+                score();
+                ball.draw();
+                ai.move();
+                gengine.drawImage(platf,x,y);
+                gengine.drawImage(platf,x0,y0);  
+                }
+                else if(gamemode == 2)
+                {
+                if(p1up==true)
+                    {
+                        mv.p1up();
+                    }
+                if(p1down==true)
+                    {
+                        mv.p1down();
+                    }
+                if(p2up==true)
+                    {
+                        mv.p2up();
+                    }
+                if(p2down==true)
+                    {
+                        mv.p2down();
+                    }
+                console.log("left: "+cdl+"   right: "+cdr);
+                gengineclear();
+                score();
+                ball.draw();
+                gengine.drawImage(platf,x,y);
+                gengine.drawImage(platf,x0,y0);
+                }else
+                {
+                pchoose();    
+                }
+            }
+            setInterval(render, 1000/60);
+        </script>
+	</body>
+</html>
